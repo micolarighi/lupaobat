@@ -1,0 +1,7 @@
+      <ThemedView style={styles.titleContainer}>
+        <View style={styles.titleWave}>
+            <ThemedText type="title">Halo Perawat</ThemedText>
+            <HelloWave />
+        </View>
+        <ThemedText>Setel jadwal obat untuk pasien anda!</ThemedText>
+      </ThemedView>
