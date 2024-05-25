@@ -176,18 +176,17 @@ export default function App() {
             <ThemedText type="title">Halo Perawat</ThemedText>
             <HelloWave />
         </View>
-        <ThemedText>Setel jadwal obat untuk pasien anda!</ThemedText>
+        <ThemedText>Atur jadwal obat untuk pasien anda!</ThemedText>
       </ThemedView>
 
       <ThemedView style={styles.timeGroupContainer}>
 
       <View style={styles.timeContainer}>
-
-        <Text style={styles.timeText}>
-          Pagi
-        </Text>
+          <Text style={styles.timePeriodText}>
+            Pagi
+          </Text>
         <Text style={styles.timeText}>{selectedTime1.toLocaleTimeString()}</Text>
-        <Button title="Setel Waktu" onPress={showPicker1} />
+        <Button title="Atur Waktu" onPress={showPicker1} />
         {showTimePicker1 && (
           <DateTimePicker
             testID="dateTimePicker1"
@@ -201,11 +200,11 @@ export default function App() {
       </View>
 
       <View style={styles.timeContainer}>
-        <Text style={styles.timeText}>
+        <Text style={styles.timePeriodText}>
           Siang
         </Text>
         <Text style={styles.timeText}>{selectedTime2.toLocaleTimeString()}</Text>
-        <Button title="Setel Waktu" onPress={showPicker2} />
+        <Button title="Atur Waktu" onPress={showPicker2} />
         {showTimePicker2 && (
           <DateTimePicker
             testID="dateTimePicker2"
@@ -219,11 +218,11 @@ export default function App() {
       </View>
 
       <View style={styles.timeContainer}>
-        <Text style={styles.timeText}>
+        <Text style={styles.timePeriodText}>
           Malam
         </Text>
         <Text style={styles.timeText}>{selectedTime3.toLocaleTimeString()}</Text>
-        <Button title="Setel Waktu" onPress={showPicker3} />
+        <Button title="Atur Waktu" onPress={showPicker3} />
         {showTimePicker3 && (
           <DateTimePicker
             testID="dateTimePicker3"
@@ -245,16 +244,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 60,
+    paddingVertical: 40,
     backgroundColor : "#161719",
   },
   timeContainer : {
     flex: 1,
-    flexDirection : "row",
+    flexDirection : "column",
     alignItems : "center",
-    justifyContent : "space-around",
+    justifyContent : "center",
     gap : 12,
-    paddingHorizontal : 10,
+    paddingHorizontal : 100,
+    paddingVertical : 20,
     borderRadius : 12,
     borderWidth : 2,
     borderColor : "white"
@@ -279,5 +279,9 @@ const styles = StyleSheet.create({
   timeText : {
     color : 'white',
     fontSize : 20,
+  }, 
+  timePeriodText : {
+    color : 'white',
+    fontSize : 28,
   }, 
 });
