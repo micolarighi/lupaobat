@@ -2,6 +2,9 @@ import { StatusBar } from "expo-status-bar";
 import { Button, Platform, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore"; 
+import { db } from '../../firebaseConfig';
+
 
 // notifications imports
 import * as Device from "expo-device";
@@ -10,6 +13,7 @@ import Constants from "expo-constants"; // Optional
 import { HelloWave } from '@/components/HelloWave';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+
 
 // Initialize the notification service
 Notifications.setNotificationHandler({
@@ -76,6 +80,19 @@ async function schedulePushNotification(id : any, time : any) {
 }
 
 export default function App() {
+  const sendData = async () => {
+  try {
+    const docRef = await addDoc(collection(db, "testCollection"), {
+      testField: "Hello, Firebase!",
+      timestamp: serverTimestamp()
+    });
+    Alert.alert("Data Sent!", `Your data has been sent to Firebase with ID: ${docRef.id}`);
+  } catch (e) {
+    Alert.alert("Error", "Something went wrong: " + e.message);
+  }
+  };
+
+
   const [showTimePicker1, setShowTimePicker1] = useState(false);
   const [selectedTime1, setSelectedTime1] = useState(new Date());
 
@@ -140,6 +157,7 @@ export default function App() {
   };
 
   useEffect(() => {
+
     const initializeNotification = async () => {
       await registerForPushNotificationsAsync();
       await schedulePushNotification("timer1", selectedTime1);
@@ -152,6 +170,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      <Button title="Send Data" onPress={sendData} />
       <ThemedView style={styles.titleContainer}>
         <View style={styles.titleWave}>
             <ThemedText type="title">Halo Perawat</ThemedText>
