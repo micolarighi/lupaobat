@@ -1,5 +1,5 @@
 # Welcome to LupaObat 👋
-App build using React Native,connected to firebase and NODEMCU ESP8266.
+App build using React Native, connected to firebase and NODEMCU ESP8266.
 
 ## Features
 - Set a schedule to remind your patients to take medicine.
