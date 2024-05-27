@@ -3,8 +3,7 @@ import { Button, Platform, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"; 
-import { db, realtimedb } from '../../firebaseConfig';
-import { ref, set } from 'firebase/database';
+import { db } from '../../../firebaseConfig';
 
 
 // notifications imports
@@ -72,36 +71,26 @@ async function schedulePushNotification(id : any, time : any) {
   await Notifications.scheduleNotificationAsync({
     identifier: id,
     content: {
-      title: "Notifikasi dari LupaObat 🔔",
-      body: "Sudah waktunya untuk pasien anda minum obat",
-      data: { data: "" },
+      title: "You've got a notification! 🔔",
+      body: "Here is the notification body",
+      data: { data: "goes here" },
     },
     trigger: { hour: time.getHours(), minute: time.getMinutes(), repeats: true }, // Schedule notification at specified time daily
   });
 }
 
 export default function App() {
-	const sendData = async () => {
-		try {
-			const docRef = await addDoc(collection(db, "waktu"), {
+  const sendData = async () => {
+  try {
+    const docRef = await addDoc(collection(db, "testCollection"), {
       testField: "Hello, Firebase!",
       timestamp: serverTimestamp()
     });
-		} catch (e) {
-			
-		}
-	}
-
-	const sendRealtimeData = () => {
-		try {
-			set(ref(realtimedb, 'testNode'), {
-				testField: 'Hello, Realtime Database!',
-				timestamp: Date.now()
-			});
-		} catch (e) {
-			
-		}
-	} 
+    Alert.alert("Data Sent!", `Your data has been sent to Firebase with ID: ${docRef.id}`);
+  } catch (e) {
+    Alert.alert("Error", "Something went wrong: " + e.message);
+  }
+  };
 
 
   const [showTimePicker1, setShowTimePicker1] = useState(false);
@@ -181,23 +170,24 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-			<Button title="Send RealTime Data" onPress={sendRealtimeData} />
+      <Button title="Send Data" onPress={sendData} />
       <ThemedView style={styles.titleContainer}>
         <View style={styles.titleWave}>
             <ThemedText type="title">Halo Perawat</ThemedText>
             <HelloWave />
         </View>
-        <ThemedText>Atur jadwal obat untuk pasien anda!</ThemedText>
+        <ThemedText>Setel jadwal obat untuk pasien anda!</ThemedText>
       </ThemedView>
 
       <ThemedView style={styles.timeGroupContainer}>
 
       <View style={styles.timeContainer}>
-          <Text style={styles.timePeriodText}>
-            Pagi
-          </Text>
+
+        <Text style={styles.timeText}>
+          Pagi
+        </Text>
         <Text style={styles.timeText}>{selectedTime1.toLocaleTimeString()}</Text>
-        <Button title="Atur Waktu" onPress={showPicker1} />
+        <Button title="Setel Waktu" onPress={showPicker1} />
         {showTimePicker1 && (
           <DateTimePicker
             testID="dateTimePicker1"
@@ -211,11 +201,11 @@ export default function App() {
       </View>
 
       <View style={styles.timeContainer}>
-        <Text style={styles.timePeriodText}>
+        <Text style={styles.timeText}>
           Siang
         </Text>
         <Text style={styles.timeText}>{selectedTime2.toLocaleTimeString()}</Text>
-        <Button title="Atur Waktu" onPress={showPicker2} />
+        <Button title="Setel Waktu" onPress={showPicker2} />
         {showTimePicker2 && (
           <DateTimePicker
             testID="dateTimePicker2"
@@ -229,11 +219,11 @@ export default function App() {
       </View>
 
       <View style={styles.timeContainer}>
-        <Text style={styles.timePeriodText}>
+        <Text style={styles.timeText}>
           Malam
         </Text>
         <Text style={styles.timeText}>{selectedTime3.toLocaleTimeString()}</Text>
-        <Button title="Atur Waktu" onPress={showPicker3} />
+        <Button title="Setel Waktu" onPress={showPicker3} />
         {showTimePicker3 && (
           <DateTimePicker
             testID="dateTimePicker3"
@@ -252,21 +242,21 @@ export default function App() {
 }
 
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 40,
+    paddingVertical: 60,
     backgroundColor : "#161719",
   },
   timeContainer : {
     flex: 1,
-    flexDirection : "column",
+    flexDirection : "row",
     alignItems : "center",
-    justifyContent : "center",
+    justifyContent : "space-around",
     gap : 12,
-    paddingHorizontal : 100,
-    paddingVertical : 20,
+    paddingHorizontal : 10,
     borderRadius : 12,
     borderWidth : 2,
     borderColor : "white"
@@ -292,9 +282,6 @@ const styles = StyleSheet.create({
     color : 'white',
     fontSize : 20,
   }, 
-  timePeriodText : {
-    color : 'white',
-    fontSize : 28,
-  } 
 });
+
 
