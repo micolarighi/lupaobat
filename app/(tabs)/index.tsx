@@ -84,7 +84,7 @@ export default function App() {
 	const sendData = async () => {
 		try {
 			const docRef = await addDoc(collection(db, "waktu"), {
-      testField: "Hello, Firebase!",
+      value: "Hello, Firebase!",
       timestamp: serverTimestamp()
     });
 		} catch (e) {
@@ -182,6 +182,7 @@ export default function App() {
   return (
     <View style={styles.container}>
 			<Button title="Send RealTime Data" onPress={sendRealtimeData} />
+			<Button title="Send Data" onPress={sendData} />
       <ThemedView style={styles.titleContainer}>
         <View style={styles.titleWave}>
             <ThemedText type="title">Halo Perawat</ThemedText>

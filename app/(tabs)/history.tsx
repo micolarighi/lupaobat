@@ -1,11 +1,53 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import { Image, StyleSheet, View, FlatList} from 'react-native';
+import React, {useCallback, useState} from 'react';
+import { db } from '../../firebaseConfig';
+import { collection, addDoc, serverTimestamp, getDocs } from 'firebase/firestore';
 import { ThemedText } from '@/components/ThemedText';
+import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedView } from '@/components/ThemedView';
+import { useFocusEffect } from '@react-navigation/native';
+import { format } from 'date-fns';
+
+interface DocumentData {
+  id: string;
+  value: string;
+  timestamp?: {
+    toDate: () => Date;
+  };
+}
 
 export default function HomeScreen() {
+    const [data, setData] = useState<DocumentData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const fetchData = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'waktu'));
+      const documents = querySnapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        value: doc.data().value,
+        timestamp: doc.data().timestamp
+      }));
+      setData(documents);
+      setLoading(false);
+    } catch (e) {
+      console.error('Firestore Error:', e);
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
+
+  if (loading) {
+    return (
+      <View>
+        <ThemedText>Loading...</ThemedText>
+      </View>
+    );
+  }
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -16,30 +58,20 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+        <ThemedText type="title">Riwayat Minum Obat Pasien</ThemedText>
       </ThemedView>
+      <FlatList
+        data={data}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ThemedView style={styles.item}>
+            <ThemedText>{item.value}</ThemedText>
+            <ThemedText>Waktu:  {item.timestamp ? format(item.timestamp.toDate(), 'MMM do, HH:mm') : ''}</ThemedText>
+          </ThemedView>
+        )}
+      />
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
         <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
           <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
           <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
           <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
@@ -67,4 +99,6 @@ const styles = StyleSheet.create({
     left: 0,
     position: 'absolute',
   },
+  item : {
+  }
 });
