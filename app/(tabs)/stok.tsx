@@ -5,7 +5,6 @@ import { collection, addDoc, serverTimestamp, getDocs } from 'firebase/firestore
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useFocusEffect } from '@react-navigation/native';
-import { Dimensions } from 'react-native'
 import { format } from 'date-fns';
 
 interface DocumentData {
@@ -24,7 +23,7 @@ export default function HomeScreen() {
       const querySnapshot = await getDocs(collection(db, 'waktu'));
       const documents = querySnapshot.docs.map(doc => ({ 
         id: doc.id, 
-        value: doc.data().value ? "✅︎" : "❌" ,
+        value: doc.data().value,
         timestamp: doc.data().timestamp
       }));
       setData(documents);
@@ -51,26 +50,10 @@ export default function HomeScreen() {
   return (
       <View style={styles.container}>
         <ThemedView style={styles.titleContainer}>
-          <ThemedText type="title">Histori</ThemedText>
-          <ThemedText>Cek riwayat minum obat pasien !</ThemedText>
+            <ThemedText type="title">Stok Obat</ThemedText>
+            <ThemedText>Cek dan Setel jumlah stok obat pasien anda!</ThemedText>
         </ThemedView>
-        <ThemedView style={styles.itemHeader}>
-          <ThemedText type='subtitle'>Tgl</ThemedText>
-          <ThemedText type='subtitle'>Jam</ThemedText>
-          <ThemedText type='subtitle'>Cek</ThemedText>
-        </ThemedView>
-        <FlatList
-          data={data}
-          style={styles.flatlist}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <ThemedView style={styles.item}>
-              <ThemedText>{item.timestamp ? format(item.timestamp.toDate(), 'dd-MM') : ''}</ThemedText>
-              <ThemedText>{item.timestamp ? format(item.timestamp.toDate(), ' HH:mm') : ''}</ThemedText>
-              <ThemedText>{item.value}</ThemedText>
-            </ThemedView>
-          )}
-        />
+        
       </View>
   );
 }
@@ -101,23 +84,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   itemHeader : {
-    width: '80%',
+    flex : 1,
+    width: '100%',
     flexDirection : 'row',
-    marginBottom: 10,
-    justifyContent : 'space-between',
+    paddingHorizontal : 40,
+    gap : 10,
+    justifyContent : 'space-between'
   },
   item: {
-    borderColor : 'gray',
-    borderWidth : 0.8,
-    borderRadius : 10,
-    flex : 1,
-    flexDirection : 'row',
-    justifyContent: 'space-between',
+    width: '100%',
+    backgroundColor : '#525252',
     padding: 10,
-    marginVertical : 5,
     fontSize: 18,
   },
   flatlist: {
-    width: '80%',
+    width: '100%',
   }
 });

@@ -33,6 +33,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="stok"
+        options={{
+          title: 'Stok',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'file-tray-stacked-outline' : 'file-tray-stacked-outline'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="bantuan"
         options={{
           title: 'Bantuan',

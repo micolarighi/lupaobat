@@ -84,7 +84,7 @@ export default function App() {
 	const sendData = async () => {
 		try {
 			const docRef = await addDoc(collection(db, "waktu"), {
-      value: "Hello, Firebase!",
+      value: true,
       timestamp: serverTimestamp()
     });
 		} catch (e) {
@@ -188,7 +188,7 @@ export default function App() {
             <ThemedText type="title">Halo Perawat</ThemedText>
             <HelloWave />
         </View>
-        <ThemedText>Atur jadwal obat untuk pasien anda!</ThemedText>
+        <ThemedText>Setel jadwal obat untuk pasien anda!</ThemedText>
       </ThemedView>
 
       <ThemedView style={styles.timeGroupContainer}>
