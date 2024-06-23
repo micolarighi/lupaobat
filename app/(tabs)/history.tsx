@@ -10,10 +10,11 @@ import { format } from 'date-fns';
 
 interface DocumentData {
   id: string;
-  value: string;
+  nilai: string;
   timestamp?: {
     toDate: () => Date;
   };
+  periode : string;
 }
 
 export default function HomeScreen() {
@@ -21,11 +22,12 @@ export default function HomeScreen() {
     const [loading, setLoading] = useState(true);
     const fetchData = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, 'waktu'));
+      const querySnapshot = await getDocs(collection(db, 'kondisi'));
       const documents = querySnapshot.docs.map(doc => ({ 
         id: doc.id, 
-        value: doc.data().value ? "✅︎" : "❌" ,
-        timestamp: doc.data().timestamp
+        nilai: doc.data().dataObat.nilai ? "✅︎" : "❌" ,
+        timestamp: doc.data().dataObat.waktu,
+        periode: doc.data().dataObat.periode
       }));
       setData(documents);
       setLoading(false);
@@ -67,7 +69,7 @@ export default function HomeScreen() {
             <ThemedView style={styles.item}>
               <ThemedText>{item.timestamp ? format(item.timestamp.toDate(), 'dd-MM') : ''}</ThemedText>
               <ThemedText>{item.timestamp ? format(item.timestamp.toDate(), ' HH:mm') : ''}</ThemedText>
-              <ThemedText>{item.value}</ThemedText>
+              <ThemedText>{item.nilai}</ThemedText>
             </ThemedView>
           )}
         />
