@@ -33,27 +33,19 @@ export default function TabTwoScreen() {
         </ThemedText>
       </Collapsible>
       <Collapsible title="Mengatur stok obat">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
+      <ThemedText>
+          Pada halaman 
+          <ThemedText type="defaultSemiBold"> Stok </ThemedText>
+          anda bisa mengatur stok dari obat pada tiap periode waktu.
         </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
       </Collapsible>
-      <Collapsible title="Tentang Aplikasi">
+      <ThemedText>
         <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
+          Aplikasi
+          <ThemedText type="defaultSemiBold"> LupaObat </ThemedText>
+         ini dibuat oleh <ThemedText type="defaultSemiBold"> Micola Arighi Dwitya </ThemedText> yang dibuat guna memperoleh gelar Ahli Madya.
         </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
+      </ThemedText>
     </ParallaxScrollView>
   );
 }
