@@ -2,8 +2,7 @@ import { StatusBar } from "expo-status-bar";
 import { Button, Platform, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore"; 
-import { db, realtimedb } from '../../firebaseConfig';
+import {realtimedb } from '../../firebaseConfig';
 import { ref, set } from 'firebase/database';
 
 
@@ -81,28 +80,19 @@ async function schedulePushNotification(id : any, time : any) {
 }
 
 export default function App() {
-	const sendData = async () => {
-		try {
-			const docRef = await addDoc(collection(db, "waktu"), {
-      value: true,
-      timestamp: serverTimestamp()
-    });
-		} catch (e) {
-			
-		}
-	}
 
 	const sendRealtimeData = () => {
 		try {
 			set(ref(realtimedb, 'testNode'), {
-				testField: 'Hello, Realtime Database!',
+				pagi: selectedTime1,
+				siang: selectedTime2,
+				malam: selectedTime3,
 				timestamp: Date.now()
 			});
 		} catch (e) {
 			
 		}
 	} 
-
 
   const [showTimePicker1, setShowTimePicker1] = useState(false);
   const [selectedTime1, setSelectedTime1] = useState(new Date());
@@ -126,6 +116,7 @@ export default function App() {
       setSelectedTime1(selectedTime);
       schedulePushNotification("timer1", selectedTime);
       hidePicker1();
+      sendRealtimeData();
     } else {
       hidePicker1();
     }
@@ -144,6 +135,7 @@ export default function App() {
       setSelectedTime2(selectedTime);
       schedulePushNotification("timer2", selectedTime);
       hidePicker2();
+      sendRealtimeData();
     } else {
       hidePicker2();
     }
@@ -162,6 +154,7 @@ export default function App() {
       setSelectedTime3(selectedTime);
       schedulePushNotification("timer3", selectedTime);
       hidePicker3();
+      sendRealtimeData();
     } else {
       hidePicker3();
     }
@@ -182,7 +175,6 @@ export default function App() {
   return (
     <View style={styles.container}>
 			<Button title="Send RealTime Data" onPress={sendRealtimeData} />
-			<Button title="Send Data" onPress={sendData} />
       <ThemedView style={styles.titleContainer}>
         <View style={styles.titleWave}>
             <ThemedText type="title">Halo Perawat</ThemedText>
