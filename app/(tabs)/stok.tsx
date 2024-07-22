@@ -1,86 +1,148 @@
-import { Pressable, StyleSheet, View, Text, TextInput, Alert} from 'react-native';
-import React, {useCallback, useState} from 'react';
-import { realtimedb } from '../../firebaseConfig';
-import { ref, set } from 'firebase/database';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import {
+  Pressable,
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  Alert,
+  Button,
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import { realtimedb } from "../../firebaseConfig";
+import { ref, set, get } from "firebase/database";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 
 export default function HomeScreen() {
-
-    const sendRealtimeData = () => {
-      try {
-        set(ref(realtimedb, 'stok'), {
-          pagi: inputs.input1,
-          siang: inputs.input2,
-          malam: inputs.input3,
+  const sendRealtimeData = () => {
+    try {
+      if (input1 != "") {
+        set(ref(realtimedb, "stok"), {
+          pagi: input1,
+          siang: input2,
+          malam: input3,
         });
-      } catch (e) {
-        
       }
-    } 
-    const [inputs, setInputs] = useState({
-      input1: '',
-      input2: '',
-      input3: '',
-    });
-  
 
-  const handleChange = (text : any, field : any) => {
-    if (/^\d*$/.test(text) && (text === '' || parseInt(text, 10) <= 30)) {
-      setInputs({
-        ...inputs,
-        [field]: text
+      fetchData();
+      setInput1("");
+      setInput2("");
+      setInput3("");
+    } catch (e) {}
+  };
+
+  const changeMode = () => {
+    try {
+      set(ref(realtimedb, "mode"), {
+        value: stokMode,
       });
+      fetchData();
+    } catch (e) {}
+  };
+
+  const [input1, setInput1] = useState("");
+  const [input2, setInput2] = useState("");
+  const [input3, setInput3] = useState("");
+  const [stok1, setStok1] = useState("");
+  const [stok2, setStok2] = useState("");
+  const [stok3, setStok3] = useState("");
+  const [stokMode, setStokMode] = useState(0);
+
+  const handleModeOff = () => {
+    setStokMode(1);
+    changeMode();
+  };
+  const handleModeOn = () => {
+    setStokMode(0);
+    changeMode();
+  };
+
+  const fetchData = async () => {
+    try {
+      const snapshot = await get(ref(realtimedb, "stok"));
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        setStok1(data.pagi);
+        setStok2(data.siang);
+        setStok3(data.malam);
+      } else {
+        console.log("No data available");
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
   };
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
-      <View style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-            <ThemedText type="title">Stok Obat</ThemedText>
-            <ThemedText>Cek dan Setel jumlah stok obat pasien anda!</ThemedText>
-        </ThemedView>
-        <ThemedView style={styles.groupContainer}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.timePeriodText}>
-              Pagi
-            </Text>
-            <TextInput
-            value={inputs.input1}
-            onChangeText={(text) => handleChange(text, 'input1')}
-            keyboardType="numeric"
-            style={styles.input}
-            />
-          </View>
+    <View style={styles.container}>
+      <ThemedView style={styles.titleContainer}>
+        <ThemedText type="title">Stok Obat</ThemedText>
+        <ThemedText>Cek dan Setel jumlah stok obat</ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.groupContainer}>
+        <View style={styles.inputContainer}>
+          <Text style={styles.timePeriodText}>Pagi</Text>
+          <Text style={styles.timeText}>{stok1}</Text>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.timePeriodText}>
-              Siang
-            </Text>
-            <TextInput
-            value={inputs.input2}
-            onChangeText={(text) => handleChange(text, 'input2')}
+          <TextInput
+            value={input1.toString()}
+            onChangeText={setInput1}
             keyboardType="numeric"
             style={styles.input}
-            />
-          </View>
+            placeholder={"input.."}
+            placeholderTextColor={"white"}
+          />
+        </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.timePeriodText}>
-              Siang
-            </Text>
-            <TextInput
-            value={inputs.input3}
-            onChangeText={(text) => handleChange(text, 'input3')}
+        <View style={styles.inputContainer}>
+          <Text style={styles.timePeriodText}>Siang</Text>
+          <Text style={styles.timeText}>{stok2}</Text>
+
+          <TextInput
+            value={input2.toString()}
+            onChangeText={setInput2}
             keyboardType="numeric"
             style={styles.input}
+            placeholder={"input.."}
+            placeholderTextColor={"white"}
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.timePeriodText}>Malam</Text>
+          <Text style={styles.timeText}>{stok3}</Text>
+
+          <TextInput
+            value={input3.toString()}
+            onChangeText={setInput3}
+            keyboardType="numeric"
+            style={styles.input}
+            placeholder={"input.."}
+            placeholderTextColor={"white"}
+          />
+        </View>
+        <View style={styles.buttonContainer}>
+          {stokMode ? (
+            <Button
+              color={"green"}
+              title="Mode Isi Ulang : ON"
+              onPress={handleModeOn}
             />
-          </View>
-        </ThemedView>
-			  <Pressable style={styles.btn} onPress={sendRealtimeData}>
-          <Text style={styles.btnText}>Update Stok Obat</Text>
-        </Pressable>
-      </View>
+          ) : (
+            <Button
+              color={"red"}
+              title="Mode Isi Ulang : OFF"
+              onPress={handleModeOff}
+            />
+          )}
+          <Button title="Konfirmasi Stok" onPress={sendRealtimeData} />
+        </View>
+      </ThemedView>
+    </View>
   );
 }
 
@@ -88,60 +150,67 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 40,
-    backgroundColor : "#161719",
+    backgroundColor: "#161719",
   },
   titleContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
+    flexDirection: "column",
+    alignItems: "center",
     marginTop: 40,
     marginBottom: 40,
     gap: 8,
   },
 
   flatlist: {
-    width: '100%',
+    width: "100%",
   },
-  groupContainer : {
-    flex : 3,
-    gap : 20,
-    justifyContent : "center",
-    marginBottom : 20,
+  groupContainer: {
+    flex: 3,
+    gap: 10,
+    justifyContent: "center",
+    marginBottom: 20,
   },
-  timePeriodText : {
-    color : 'white',
-    fontSize : 28,
+  timePeriodText: {
+    color: "white",
+    fontSize: 20,
   },
-  inputContainer : {
+  inputContainer: {
     flex: 1,
-    flexDirection : "column",
-    alignItems : "center",
-    justifyContent : "center",
-    gap : 8,
-    paddingHorizontal : 100,
-    paddingVertical : 10,
-    borderRadius : 12,
-    borderWidth : 2,
-    borderColor : "white"
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+    alignContent: "center",
+    gap: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "white",
   },
-  input : {
-    borderColor: 'gray',
+  input: {
+    borderColor: "gray",
     borderWidth: 1,
-    paddingVertical : 10,
-    fontWeight : 'bold',
-    fontSize : 16,
+    paddingVertical: 5,
+    fontWeight: "bold",
+    fontSize: 16,
     paddingHorizontal: 8,
-    color : "white",
-    textAlign : "center",
+    color: "white",
+    textAlign: "center",
   },
-  btn : {
-    backgroundColor : '#2196f3',
-    padding : 20,
-    borderRadius : 2,
+  btn: {
+    backgroundColor: "#2196f3",
+    padding: 20,
+    borderRadius: 2,
   },
-  btnText : {
-    color : 'white',
-    
-  }
-
+  btnText: {
+    color: "white",
+  },
+  timeText: {
+    color: "white",
+    fontSize: 20,
+  },
+  buttonContainer: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 8,
+  },
 });

@@ -2,18 +2,16 @@ import { StatusBar } from "expo-status-bar";
 import { Button, Platform, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import {realtimedb } from '../../firebaseConfig';
-import { ref, set } from 'firebase/database';
-
+import { realtimedb } from "../../firebaseConfig";
+import { ref, set, get } from "firebase/database";
 
 // notifications imports
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants"; // Optional
-import { HelloWave } from '@/components/HelloWave';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-
+import { HelloWave } from "@/components/HelloWave";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 
 // Initialize the notification service
 Notifications.setNotificationHandler({
@@ -38,7 +36,8 @@ async function registerForPushNotificationsAsync() {
   }
 
   if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
     if (existingStatus !== "granted") {
       const { status } = await Notifications.requestPermissionsAsync();
@@ -65,7 +64,7 @@ async function registerForPushNotificationsAsync() {
 }
 
 // Send the notification
-async function schedulePushNotification(id : any, time : any) {
+async function schedulePushNotification(id: any, time: any) {
   await Notifications.cancelScheduledNotificationAsync(id); // Cancel any existing notification with the same id
 
   await Notifications.scheduleNotificationAsync({
@@ -75,24 +74,71 @@ async function schedulePushNotification(id : any, time : any) {
       body: "Sudah waktunya untuk pasien anda minum obat",
       data: { data: "" },
     },
-    trigger: { hour: time.getHours(), minute: time.getMinutes(), repeats: true }, // Schedule notification at specified time daily
+    trigger: {
+      hour: time.getHours(),
+      minute: time.getMinutes(),
+      repeats: true,
+    }, // Schedule notification at specified time daily
   });
 }
 
 export default function App() {
+  const sendRealtimeData = () => {
+    try {
+      set(ref(realtimedb, "waktu"), {
+        pagi: selectedTime1.toLocaleTimeString(),
+        siang: selectedTime2.toLocaleTimeString(),
+        malam: selectedTime3.toLocaleTimeString(),
+        // timestamp: Date.now(),
+      })
+        .then(() => {
+          console.log("Data sent successfully!");
+        })
+        .catch((error) => {
+          console.error("Error sending data: ", error);
+        });
+    } catch (e) {
+      console.error("Exception: ", e);
+    }
+  };
 
-	const sendRealtimeData = () => {
-		try {
-			set(ref(realtimedb, 'testNode'), {
-				pagi: selectedTime1,
-				siang: selectedTime2,
-				malam: selectedTime3,
-				timestamp: Date.now()
-			});
-		} catch (e) {
-			
-		}
-	} 
+  function convertTimeStringToDate(timeString: any) {
+    const [time, period] = timeString.split(" ");
+    let [hours, minutes, seconds] = time.split(":");
+
+    // Convert to numbers
+    hours = parseInt(hours, 10);
+    minutes = parseInt(minutes, 10);
+    seconds = parseInt(seconds, 10);
+
+    // Adjust hours for AM/PM
+    if (period === "PM" && hours !== 12) {
+      hours += 12;
+    } else if (period === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    // Create a new Date object with today's date and the specified time
+    const now = new Date();
+    now.setHours(hours, minutes, seconds, 0);
+    return now;
+  }
+
+  const fetchData = async () => {
+    try {
+      const snapshot = await get(ref(realtimedb, "waktu"));
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        setSelectedTime1(convertTimeStringToDate(data.pagi));
+        setSelectedTime2(convertTimeStringToDate(data.siang));
+        setSelectedTime3(convertTimeStringToDate(data.malam));
+      } else {
+        console.log("No data available");
+      }
+    } catch (error) {
+      console.error("Error fetching data: ", error);
+    }
+  };
 
   const [showTimePicker1, setShowTimePicker1] = useState(false);
   const [selectedTime1, setSelectedTime1] = useState(new Date());
@@ -111,12 +157,11 @@ export default function App() {
     setShowTimePicker1(false);
   };
 
-  const handleTimeChange1 = (event : any, selectedTime : any) => {
+  const handleTimeChange1 = (event: any, selectedTime: any) => {
     if (selectedTime) {
       setSelectedTime1(selectedTime);
       schedulePushNotification("timer1", selectedTime);
       hidePicker1();
-      sendRealtimeData();
     } else {
       hidePicker1();
     }
@@ -130,12 +175,11 @@ export default function App() {
     setShowTimePicker2(false);
   };
 
-  const handleTimeChange2 = (event : any, selectedTime : any) => {
+  const handleTimeChange2 = (event: any, selectedTime: any) => {
     if (selectedTime) {
       setSelectedTime2(selectedTime);
       schedulePushNotification("timer2", selectedTime);
       hidePicker2();
-      sendRealtimeData();
     } else {
       hidePicker2();
     }
@@ -149,19 +193,17 @@ export default function App() {
     setShowTimePicker3(false);
   };
 
-  const handleTimeChange3 = (event : any, selectedTime : any) => {
+  const handleTimeChange3 = (event: any, selectedTime: any) => {
     if (selectedTime) {
       setSelectedTime3(selectedTime);
       schedulePushNotification("timer3", selectedTime);
       hidePicker3();
-      sendRealtimeData();
     } else {
       hidePicker3();
     }
   };
 
   useEffect(() => {
-
     const initializeNotification = async () => {
       await registerForPushNotificationsAsync();
       await schedulePushNotification("timer1", selectedTime1);
@@ -170,124 +212,122 @@ export default function App() {
     };
 
     initializeNotification();
+    fetchData();
   }, []);
 
   return (
     <View style={styles.container}>
-			<Button title="Send RealTime Data" onPress={sendRealtimeData} />
       <ThemedView style={styles.titleContainer}>
         <View style={styles.titleWave}>
-            <ThemedText type="title">Halo Perawat</ThemedText>
-            <HelloWave />
+          <ThemedText type="title">Halo Perawat</ThemedText>
+          <HelloWave />
         </View>
         <ThemedText>Setel jadwal obat untuk pasien anda!</ThemedText>
       </ThemedView>
 
       <ThemedView style={styles.timeGroupContainer}>
-
-      <View style={styles.timeContainer}>
-          <Text style={styles.timePeriodText}>
-            Pagi
+        <View style={styles.timeContainer}>
+          <Text style={styles.timePeriodText}>Pagi</Text>
+          <Text style={styles.timeText}>
+            {selectedTime1.toLocaleTimeString()}
           </Text>
-        <Text style={styles.timeText}>{selectedTime1.toLocaleTimeString()}</Text>
-        <Button title="Atur Waktu" onPress={showPicker1} />
-        {showTimePicker1 && (
-          <DateTimePicker
-            testID="dateTimePicker1"
-            value={selectedTime1}
-            mode="time"
-            is24Hour={true}
-            display="default"
-            onChange={handleTimeChange1}
-          />
-        )}
-      </View>
+          <Button title="Atur Waktu" onPress={showPicker1} />
+          {showTimePicker1 && (
+            <DateTimePicker
+              testID="dateTimePicker1"
+              value={selectedTime1}
+              mode="time"
+              is24Hour={true}
+              display="default"
+              onChange={handleTimeChange1}
+            />
+          )}
+        </View>
 
-      <View style={styles.timeContainer}>
-        <Text style={styles.timePeriodText}>
-          Siang
-        </Text>
-        <Text style={styles.timeText}>{selectedTime2.toLocaleTimeString()}</Text>
-        <Button title="Atur Waktu" onPress={showPicker2} />
-        {showTimePicker2 && (
-          <DateTimePicker
-            testID="dateTimePicker2"
-            value={selectedTime2}
-            mode="time"
-            is24Hour={true}
-            display="default"
-            onChange={handleTimeChange2}
-          />
-        )}
-      </View>
+        <View style={styles.timeContainer}>
+          <Text style={styles.timePeriodText}>Siang</Text>
+          <Text style={styles.timeText}>
+            {selectedTime2.toLocaleTimeString()}
+          </Text>
+          <Button title="Atur Waktu" onPress={showPicker2} />
+          {showTimePicker2 && (
+            <DateTimePicker
+              testID="dateTimePicker2"
+              value={selectedTime2}
+              mode="time"
+              is24Hour={true}
+              display="default"
+              onChange={handleTimeChange2}
+            />
+          )}
+        </View>
 
-      <View style={styles.timeContainer}>
-        <Text style={styles.timePeriodText}>
-          Malam
-        </Text>
-        <Text style={styles.timeText}>{selectedTime3.toLocaleTimeString()}</Text>
-        <Button title="Atur Waktu" onPress={showPicker3} />
-        {showTimePicker3 && (
-          <DateTimePicker
-            testID="dateTimePicker3"
-            value={selectedTime3}
-            mode="time"
-            is24Hour={true}
-            display="default"
-            onChange={handleTimeChange3}
-          />
-        )}
-      </View>
+        <View style={styles.timeContainer}>
+          <Text style={styles.timePeriodText}>Malam</Text>
+          <Text style={styles.timeText}>
+            {selectedTime3.toLocaleTimeString()}
+          </Text>
+          <Button title="Atur Waktu" onPress={showPicker3} />
+          {showTimePicker3 && (
+            <DateTimePicker
+              testID="dateTimePicker3"
+              value={selectedTime3}
+              mode="time"
+              is24Hour={true}
+              display="default"
+              onChange={handleTimeChange3}
+            />
+          )}
+        </View>
+        <Button title="Konfirmasi Waktu" onPress={sendRealtimeData} />
       </ThemedView>
       <StatusBar style="auto" />
     </View>
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 40,
-    backgroundColor : "#161719",
+    paddingVertical: 10,
+    backgroundColor: "#161719",
   },
-  timeContainer : {
+  timeContainer: {
     flex: 1,
-    flexDirection : "column",
-    alignItems : "center",
-    justifyContent : "center",
-    gap : 12,
-    paddingHorizontal : 100,
-    paddingVertical : 20,
-    borderRadius : 12,
-    borderWidth : 2,
-    borderColor : "white"
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    paddingHorizontal: 110,
+    paddingVertical: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "white",
   },
   titleContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
+    flexDirection: "column",
+    alignItems: "center",
     marginTop: 40,
     marginBottom: 40,
     gap: 8,
   },
-  timeGroupContainer : {
-    flex : 3,
-    gap : 20,
-    justifyContent : "center",
+  timeGroupContainer: {
+    flex: 3,
+    gap: 10,
+    justifyContent: "center",
   },
   titleWave: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
-  timeText : {
-    color : 'white',
-    fontSize : 20,
-  }, 
-  timePeriodText : {
-    color : 'white',
-    fontSize : 28,
-  } 
+  timeText: {
+    color: "white",
+    fontSize: 20,
+  },
+  timePeriodText: {
+    color: "white",
+    fontSize: 20,
+  },
 });
-

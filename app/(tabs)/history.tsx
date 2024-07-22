@@ -1,79 +1,65 @@
-import { Image, StyleSheet, View, FlatList} from 'react-native';
-import React, {useCallback, useState} from 'react';
-import { db } from '../../firebaseConfig';
-import { collection, addDoc, serverTimestamp, getDocs } from 'firebase/firestore';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { useFocusEffect } from '@react-navigation/native';
-import { Dimensions } from 'react-native'
-import { format } from 'date-fns';
-
-interface DocumentData {
-  id: string;
-  nilai: string;
-  timestamp?: {
-    toDate: () => Date;
-  };
-  periode : string;
-}
+import { StyleSheet, View, Text, TextInput, Alert, Button } from "react-native";
+import React, { useEffect, useState } from "react";
+import { realtimedb } from "../../firebaseConfig";
+import { ref, set, get } from "firebase/database";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 
 export default function HomeScreen() {
-    const [data, setData] = useState<DocumentData[]>([]);
-    const [loading, setLoading] = useState(true);
-    const fetchData = async () => {
+  const [status1, setStatus1] = useState(1);
+  const [status2, setStatus2] = useState(1);
+  const [status3, setStatus3] = useState(0);
+  const [temperatur, setTemperatur] = useState(25);
+
+  const fetchData = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, 'kondisi'));
-      const documents = querySnapshot.docs.map(doc => ({ 
-        id: doc.id, 
-        nilai: doc.data().dataObat.nilai ? "✅︎" : "❌" ,
-        timestamp: doc.data().dataObat.waktu,
-        periode: doc.data().dataObat.periode
-      }));
-      setData(documents);
-      setLoading(false);
-    } catch (e) {
-      console.error('Firestore Error:', e);
-      setLoading(false);
+      const snapshot = await get(ref(realtimedb, "stok"));
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+      } else {
+        console.log("No data available");
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchData();
-    }, [])
-  );
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  if (loading) {
-    return (
-      <View>
-        <ThemedText>Loading...</ThemedText>
-      </View>
-    );
-  }
   return (
-      <View style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="title">Histori</ThemedText>
-          <ThemedText>Cek riwayat minum obat pasien !</ThemedText>
-        </ThemedView>
-        <ThemedView style={styles.itemHeader}>
-          <ThemedText type='subtitle'>Tgl</ThemedText>
-          <ThemedText type='subtitle'>Jam</ThemedText>
-          <ThemedText type='subtitle'>Cek</ThemedText>
-        </ThemedView>
-        <FlatList
-          data={data}
-          style={styles.flatlist}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <ThemedView style={styles.item}>
-              <ThemedText>{item.timestamp ? format(item.timestamp.toDate(), 'dd-MM') : ''}</ThemedText>
-              <ThemedText>{item.timestamp ? format(item.timestamp.toDate(), ' HH:mm') : ''}</ThemedText>
-              <ThemedText>{item.nilai}</ThemedText>
-            </ThemedView>
-          )}
-        />
-      </View>
+    <View style={styles.container}>
+      <ThemedView style={styles.titleContainer}>
+        <ThemedText type="title">Status</ThemedText>
+        <ThemedText>Cek penggunaan obat pasien anda</ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.groupContainer}>
+        <View style={styles.timeStatusContainer}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.timePeriodText}>Pagi</Text>
+            <Text style={styles.timeText}>{status1 ? "✅" : "❌"}</Text>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.timePeriodText}>Siang</Text>
+            <Text style={styles.timeText}>{status2 ? "✅" : "❌"}</Text>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.timePeriodText}>Malam</Text>
+            <Text style={styles.timeText}>{status3 ? "✅" : "❌"}</Text>
+          </View>
+        </View>
+
+        <View style={styles.temperatureContainer}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.timePeriodText}>Suhu</Text>
+            <Text style={styles.timeText}>{temperatur} °c</Text>
+          </View>
+        </View>
+      </ThemedView>
+    </View>
   );
 }
 
@@ -81,45 +67,68 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 40,
-    backgroundColor : "#161719",
+    backgroundColor: "#161719",
   },
   titleContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
+    flexDirection: "column",
+    alignItems: "center",
     marginTop: 40,
     marginBottom: 40,
     gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-  itemHeader : {
-    width: '80%',
-    flexDirection : 'row',
-    marginBottom: 10,
-    justifyContent : 'space-between',
-  },
-  item: {
-    borderColor : 'gray',
-    borderWidth : 0.8,
-    borderRadius : 10,
-    flex : 1,
-    flexDirection : 'row',
-    justifyContent: 'space-between',
-    padding: 10,
-    marginVertical : 5,
-    fontSize: 18,
-  },
+
   flatlist: {
-    width: '80%',
-  }
+    width: "100%",
+  },
+  groupContainer: {
+    flex: 1,
+    flexDirection: "column",
+    gap: 20,
+    justifyContent: "center",
+  },
+  timeStatusContainer: {
+    flex: 1,
+    flexDirection: "column",
+    gap: 10,
+    marginBottom: 20,
+  },
+  temperatureContainer: {
+    flex: 1,
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 20,
+  },
+  timePeriodText: {
+    color: "white",
+    fontSize: 20,
+  },
+  inputContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 20,
+    paddingHorizontal: 120,
+    paddingVertical: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "white",
+  },
+  btn: {
+    backgroundColor: "#2196f3",
+    padding: 20,
+    borderRadius: 2,
+  },
+  btnText: {
+    color: "white",
+  },
+  timeText: {
+    color: "white",
+    fontSize: 20,
+  },
+  buttonContainer: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 8,
+  },
 });
