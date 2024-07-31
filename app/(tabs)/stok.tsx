@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { realtimedb } from "../../firebaseConfig";
-import { ref, set, get } from "firebase/database";
+import { ref, set, get, onValue, off } from "firebase/database";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 
@@ -24,7 +24,6 @@ export default function HomeScreen() {
         });
       }
 
-      fetchData();
       setInput1("");
       setInput2("");
       setInput3("");
@@ -36,16 +35,15 @@ export default function HomeScreen() {
       set(ref(realtimedb, "mode"), {
         value: stokMode,
       });
-      fetchData();
     } catch (e) {}
   };
 
   const [input1, setInput1] = useState("");
   const [input2, setInput2] = useState("");
   const [input3, setInput3] = useState("");
-  const [stok1, setStok1] = useState("");
-  const [stok2, setStok2] = useState("");
-  const [stok3, setStok3] = useState("");
+  const [stok1, setStok1] = useState();
+  const [stok2, setStok2] = useState();
+  const [stok3, setStok3] = useState();
   const [stokMode, setStokMode] = useState(0);
 
   const handleModeOff = () => {
@@ -57,24 +55,26 @@ export default function HomeScreen() {
     changeMode();
   };
 
-  const fetchData = async () => {
-    try {
-      const snapshot = await get(ref(realtimedb, "stok"));
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        setStok1(data.pagi);
-        setStok2(data.siang);
-        setStok3(data.malam);
-      } else {
-        console.log("No data available");
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
+    const statusRef = ref(realtimedb, "stok");
+    const unsubscribe = onValue(
+      statusRef,
+      (snapshot: any) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          setStok1(data.pagi);
+          setStok2(data.siang);
+          setStok3(data.malam);
+        } else {
+          console.log("No data available");
+        }
+      },
+      (error: any) => {
+        console.error("Error fetching data:", error);
+      }
+    );
+
+    return () => off(statusRef, "value", unsubscribe);
   }, []);
 
   return (
@@ -93,7 +93,7 @@ export default function HomeScreen() {
             onChangeText={setInput1}
             keyboardType="numeric"
             style={styles.input}
-            placeholder={"input.."}
+            placeholder={".."}
             placeholderTextColor={"white"}
           />
         </View>
@@ -107,7 +107,7 @@ export default function HomeScreen() {
             onChangeText={setInput2}
             keyboardType="numeric"
             style={styles.input}
-            placeholder={"input.."}
+            placeholder={".."}
             placeholderTextColor={"white"}
           />
         </View>
@@ -121,7 +121,7 @@ export default function HomeScreen() {
             onChangeText={setInput3}
             keyboardType="numeric"
             style={styles.input}
-            placeholder={"input.."}
+            placeholder={".."}
             placeholderTextColor={"white"}
           />
         </View>
@@ -151,6 +151,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     backgroundColor: "#161719",
+    paddingVertical: 10,
   },
   titleContainer: {
     flexDirection: "column",
@@ -167,7 +168,6 @@ const styles = StyleSheet.create({
     flex: 3,
     gap: 10,
     justifyContent: "center",
-    marginBottom: 20,
   },
   timePeriodText: {
     color: "white",

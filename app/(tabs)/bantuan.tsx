@@ -45,8 +45,11 @@ export default function TabTwoScreen() {
             {"\n"}Simbol ✅ menandakan pasien sudah minum obat.{"\n"}
           </ThemedText>
           <ThemedText type="defaultSemiBold">
-            {"\n"}Simbol ❌ menandakan pasien belum minum obat.
+            {"\n"}Simbol ❌ menandakan pasien belum minum obat.{"\n"}
           </ThemedText>
+          {"\n"}Tekan tombol{" "}
+          <ThemedText type="defaultSemiBold">Reset Status</ThemedText> setiap
+          selesai melakukan pengecekan setiap harinya.
         </ThemedText>
       </Collapsible>
       <Collapsible title="Mengatur stok obat">
@@ -58,7 +61,9 @@ export default function TabTwoScreen() {
           kemudian mulai masukkan obat pada laci obat pintar dan sesuaikan
           jumlah yang dimasukkan pada tiap periode waktu.{"\n"}
           {"\n"}Jika sudah yakin, tekan tombol{" "}
-          <ThemedText type="defaultSemiBold"> Konfirmasi Stok</ThemedText>
+          <ThemedText type="defaultSemiBold"> Konfirmasi Stok</ThemedText> dan
+          matikan mode isi ulang untuk memastikan alat dapat berfungsi seperti
+          semula.
         </ThemedText>
       </Collapsible>
       <ThemedText>

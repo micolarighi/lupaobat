@@ -86,9 +86,24 @@ export default function App() {
   const sendRealtimeData = () => {
     try {
       set(ref(realtimedb, "waktu"), {
-        pagi: selectedTime1.toLocaleTimeString(),
-        siang: selectedTime2.toLocaleTimeString(),
-        malam: selectedTime3.toLocaleTimeString(),
+        pagi: selectedTime1.toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }),
+        siang: selectedTime2.toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }),
+        malam: selectedTime3.toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }),
         // timestamp: Date.now(),
       })
         .then(() => {
@@ -222,7 +237,7 @@ export default function App() {
           <ThemedText type="title">Halo Perawat</ThemedText>
           <HelloWave />
         </View>
-        <ThemedText>Setel jadwal obat untuk pasien anda!</ThemedText>
+        <ThemedText>Setel jadwal obat untuk pasien anda</ThemedText>
       </ThemedView>
 
       <ThemedView style={styles.timeGroupContainer}>

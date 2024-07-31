@@ -1,38 +1,59 @@
 import { StyleSheet, View, Text, TextInput, Alert, Button } from "react-native";
 import React, { useEffect, useState } from "react";
 import { realtimedb } from "../../firebaseConfig";
-import { ref, set, get } from "firebase/database";
+import { ref, set, onValue, off } from "firebase/database";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 
 export default function HomeScreen() {
-  const [status1, setStatus1] = useState(1);
-  const [status2, setStatus2] = useState(1);
+  const [status1, setStatus1] = useState(0);
+  const [status2, setStatus2] = useState(0);
   const [status3, setStatus3] = useState(0);
-  const [temperatur, setTemperatur] = useState(25);
-
-  const fetchData = async () => {
-    try {
-      const snapshot = await get(ref(realtimedb, "stok"));
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-      } else {
-        console.log("No data available");
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
+  const [temperatur, setTemperatur] = useState();
 
   useEffect(() => {
-    fetchData();
+    const statusRef = ref(realtimedb, "status");
+    const unsubscribe = onValue(
+      statusRef,
+      (snapshot: any) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          setStatus1(data.pagi);
+          setStatus2(data.siang);
+          setStatus3(data.malam);
+          setTemperatur(data.suhu);
+        } else {
+          console.log("No data available");
+        }
+      },
+      (error: any) => {
+        console.error("Error fetching data:", error);
+      }
+    );
+
+    // Cleanup the listener when the component unmounts
+    return () => off(statusRef, "value", unsubscribe);
   }, []);
+
+  const resetStatus = () => {
+    setStatus1(0);
+    setStatus2(0);
+    setStatus3(0);
+    try {
+      set(ref(realtimedb, "status"), {
+        pagi: 0,
+        siang: 0,
+        malam: 0,
+        suhu: temperatur,
+      });
+    } catch (e) {}
+  };
 
   return (
     <View style={styles.container}>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Status</ThemedText>
-        <ThemedText>Cek penggunaan obat pasien anda</ThemedText>
+        <ThemedText>Cek status obat harian pasien anda</ThemedText>
       </ThemedView>
       <ThemedView style={styles.groupContainer}>
         <View style={styles.timeStatusContainer}>
@@ -58,6 +79,7 @@ export default function HomeScreen() {
             <Text style={styles.timeText}>{temperatur} °c</Text>
           </View>
         </View>
+        <Button title="Reset Status" onPress={resetStatus} />
       </ThemedView>
     </View>
   );
@@ -68,6 +90,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     backgroundColor: "#161719",
+    paddingVertical: 10,
   },
   titleContainer: {
     flexDirection: "column",
@@ -108,7 +131,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 20,
-    paddingHorizontal: 120,
+    paddingHorizontal: 110,
     paddingVertical: 20,
     borderRadius: 12,
     borderWidth: 2,
